@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Watermarking Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            background: url('https://media.tenor.com/sh__UVOC5UQAAAAi/borboletas-butterflies.gif') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px 40px;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        
+        h1 {
+            margin-bottom: 20px;
+            
+        }
+        input[type="file"], input[type="text"], select, input[type="number"], input[type="color"] {
+            margin-bottom: 15px;
+            padding: 10px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: tomato;
+        }
+        #preview {
+            margin-top: 20px;
+            max-width: 100%;
+            height: auto;
+        }
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .toggle-container label {
+            margin-right: 10px;
+        }
+        .upload-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #28a745;
+            color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        .upload-button img {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+        }
+        .upload-button span {
+            font-size: 16px;
+        }
+        .upload-button input[type="file"] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Image Watermarking Tool</h1>
+        <form id="watermark-form">
+            <!-- Upload Button with Icon -->
+            <label class="upload-button">
+                <img src="https://cdn.pixabay.com/photo/2016/01/03/00/43/upload-1118929_960_720.png" alt="Upload Icon">
+                <span>Upload Image</span>
+                <input type="file" name="image" accept="image/*" required>
+            </label>
+            <input type="text" name="watermark_text" placeholder="Enter watermark text">
+            <select name="text_position" required>
+                <option value="center">Text Position: Center</option>
+                <option value="top-left">Text Position: Top Left</option>
+                <option value="top-right">Text Position: Top Right</option>
+                <option value="bottom-left">Text Position: Bottom Left</option>
+                <option value="bottom-right">Text Position: Bottom Right</option>
+            </select>
+            <input type="file" name="watermark_image" accept="image/*">
+            <select name="image_position" required>
+                <option value="center">Image Position: Center</option>
+                <option value="top-left">Image Position: Top Left</option>
+                <option value="top-right">Image Position: Top Right</option>
+                <option value="bottom-left">Image Position: Bottom Left</option>
+                <option value="bottom-right">Image Position: Bottom Right</option>
+            </select>
+            <input type="number" name="font_size" placeholder="Font Size" value="40">
+            <div class="toggle-container">
+                <label for="font_color_toggle">Show Font Color Picker:</label>
+                <input type="checkbox" id="font_color_toggle" onchange="toggleColorPicker()">
+            </div>
+            <input type="color" name="font_color" id="font_color" value="#ffffff" style="display: none;">
+            <button type="button" onclick="previewWatermark()">Preview</button>
+            <button type="button" onclick="downloadWatermark()">Download</button>
+        </form>
+        <img id="preview" src="#" alt="Watermarked Preview" style="display: none;">
+    </div>
+
+    <script>
+        function toggleColorPicker() {
+            const colorPicker = document.getElementById('font_color');
+            colorPicker.style.display = colorPicker.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function previewWatermark() {
+            const form = document.getElementById('watermark-form');
+            const formData = new FormData(form);
+
+            fetch('/preview', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const preview = document.getElementById('preview');
+                preview.src = URL.createObjectURL(blob);
+                preview.style.display = 'block';
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function downloadWatermark() {
+            const form = document.getElementById('watermark-form');
+            const formData = new FormData(form);
+
+            fetch('/download', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'watermarked_image.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
